@@ -1,0 +1,23 @@
+{
+  "name": "aprs-web",
+  "version": "0.2.0",
+  "description": "Self-hosted APRS dashboard — Direwolf KISS/TCP → SQLite → Leaflet map",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js"
+  },
+  "dependencies": {
+    "aprs-parser": "^1.0.9",
+    "better-sqlite3": "^12.9.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

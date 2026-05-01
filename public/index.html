@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APRS Dashboard</title>
+  <meta name="description" content="Self-hosted APRS radio dashboard — real-time station map, weather, and messaging." />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <!-- ── Top nav bar ─────────────────────────────────────────────────────── -->
+  <header id="topbar">
+    <div id="topbar-brand">
+      <span class="brand-icon">📡</span>
+      <span class="brand-name">APRS Dashboard</span>
+    </div>
+    <div id="topbar-controls">
+      <div id="tnc-status" class="status-badge disconnected" title="TNC connection status">
+        <span class="status-dot"></span>
+        <span class="status-label">Disconnected</span>
+      </div>
+      <button id="btn-beacon" class="btn btn-primary" title="Transmit position beacon">
+        <span>📍</span> Beacon
+      </button>
+      <button id="btn-trace-toggle" class="btn btn-secondary" title="Toggle packet trace log">
+        <span>📋</span> Trace
+      </button>
+      <button id="btn-messages-toggle" class="btn btn-secondary" title="Toggle messages panel">
+        <span>💬</span> Messages
+        <span id="msg-badge" class="badge hidden">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Layout wrapper ──────────────────────────────────────────────────── -->
+  <div id="layout">
+
+    <!-- ── Station info sidebar (left) ──────────────────────────────────── -->
+    <aside id="info-panel" class="panel hidden">
+      <div class="panel-header">
+        <h2 id="info-callsign">—</h2>
+        <button id="btn-close-info" class="btn-icon" aria-label="Close">✕</button>
+      </div>
+      <div class="panel-body">
+        <div class="info-row">
+          <span class="info-label">Last Heard</span>
+          <span id="info-last-heard" class="info-value mono">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Comment</span>
+          <span id="info-comment" class="info-value">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Coordinates</span>
+          <span id="info-coords" class="info-value mono">—</span>
+        </div>
+
+        <!-- Track history controls -->
+        <div id="track-section">
+          <div class="section-divider">📍 Track History</div>
+          <div id="track-buttons" class="track-btn-group">
+            <button class="track-btn" data-period="600">10m</button>
+            <button class="track-btn" data-period="3600">1h</button>
+            <button class="track-btn" data-period="10800">3h</button>
+            <button class="track-btn" data-period="21600">6h</button>
+            <button class="track-btn" data-period="43200">12h</button>
+            <button class="track-btn" data-period="86400">24h</button>
+            <button id="btn-track-clear" class="track-btn clear hidden">Clear</button>
+          </div>
+        </div>
+
+        <!-- Weather sub-section -->
+        <div id="weather-section" class="hidden">
+          <div class="section-divider">🌤 Weather</div>
+          <div class="info-row">
+            <span class="info-label">Temperature</span>
+            <span id="wx-temp" class="info-value">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Humidity</span>
+            <span id="wx-humidity" class="info-value">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Wind</span>
+            <span id="wx-wind" class="info-value">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Rain (1h)</span>
+            <span id="wx-rain" class="info-value">—</span>
+          </div>
+        </div>
+
+        <button id="btn-msg-this-station" class="btn btn-secondary full-width mt-8">
+          Send Message to <span id="btn-msg-callsign">—</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Map ──────────────────────────────────────────────────────────── -->
+    <main id="map"></main>
+
+    <!-- ── Packet trace drawer (far right) ─────────────────────────────────── -->
+    <aside id="trace-panel" class="panel hidden">
+      <div class="panel-header">
+        <h2>Packet Trace</h2>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button id="btn-trace-clear" class="btn btn-secondary" style="padding:4px 8px;font-size:0.75rem">Clear</button>
+          <button id="btn-close-trace" class="btn-icon" aria-label="Close">✕</button>
+        </div>
+      </div>
+      <div id="trace-log" class="trace-log"></div>
+    </aside>
+
+    <!-- ── Messages drawer (right) ──────────────────────────────────────────── -->
+    <aside id="messages-panel" class="panel hidden">
+      <div class="panel-header">
+        <h2>Messages</h2>
+        <button id="btn-close-messages" class="btn-icon" aria-label="Close">✕</button>
+      </div>
+      <div id="chat-log" class="chat-log"></div>
+      <div id="chat-compose">
+        <input id="chat-to"      type="text"  placeholder="To callsign…" autocomplete="off" />
+        <input id="chat-text"    type="text"  placeholder="Message…"     autocomplete="off" />
+        <button id="btn-send-message" class="btn btn-primary">Send</button>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- ── Beacon modal ─────────────────────────────────────────────────────── -->
+  <div id="beacon-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Transmit Beacon</h3>
+        <button id="btn-close-beacon" class="btn-icon">✕</button>
+      </div>
+      <div class="modal-body">
+        <label for="beacon-lat">Latitude</label>
+        <input id="beacon-lat" type="number" step="0.000001" placeholder="37.7749" />
+        <label for="beacon-lon">Longitude</label>
+        <input id="beacon-lon" type="number" step="0.000001" placeholder="-122.4194" />
+        <label for="beacon-comment">Comment</label>
+        <input id="beacon-comment" type="text" maxlength="43" placeholder="Optional comment…" />
+      </div>
+      <div class="modal-footer">
+        <button id="btn-beacon-send" class="btn btn-primary">Transmit</button>
+        <button id="btn-beacon-cancel" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast notification ─────────────────────────────────────────────── -->
+  <div id="toast" class="toast hidden" role="alert"></div>
+
+  <!-- ── Scripts ─────────────────────────────────────────────────────────── -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/map.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

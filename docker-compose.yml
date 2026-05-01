@@ -1,0 +1,41 @@
+services:
+  aprs-web:
+    build: .
+    image: aprs-web:latest
+    container_name: aprs-web
+    restart: unless-stopped
+
+    # ── Environment ─────────────────────────────────────────────────────────
+    # Values are read from your .env file at the project root.
+    # Override individual vars here or keep them all in .env.
+    env_file: .env
+
+    # ── Ports ───────────────────────────────────────────────────────────────
+    ports:
+      - "${WEB_PORT:-3000}:${WEB_PORT:-3000}"
+
+    # ── Volumes ─────────────────────────────────────────────────────────────
+    # Persists the SQLite database across container restarts.
+    volumes:
+      - aprs-data:/app/data
+
+    # ── Networking ──────────────────────────────────────────────────────────
+    # No special network needed unless Direwolf is also a container on the
+    # same Docker network. In that case, set DIREWOLF_HOST to the service name.
+    # Example:
+    #   networks:
+    #     - radio-net
+    # and add that network to both this service and the direwolf service.
+
+    # ── Healthcheck (mirrors Dockerfile HEALTHCHECK) ────────────────────────
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/stations"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+# ── Named volumes ─────────────────────────────────────────────────────────────
+volumes:
+  aprs-data:
+    driver: local
