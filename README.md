@@ -214,7 +214,7 @@ docker run -d \
   --restart unless-stopped \
   -p 3000:3000 \
   -v aprs-data:/app/data \
-  --env MY_CALLSIGN=K7NGS-9 \
+  --env MY_CALLSIGN=NOCALL \
   --env DIREWOLF_HOST=direwolf.localdomain \
   --env DIREWOLF_KISS_PORT=8001 \
   --env WEB_PORT=3000 \
