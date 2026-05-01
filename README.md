@@ -2,8 +2,6 @@
 
 A self-hosted, real-time APRS (Automatic Packet Reporting System) dashboard that interfaces with a local [Direwolf](https://github.com/wb2osz/direwolf) software TNC over a TCP KISS connection. Decoded station positions, weather data, and messages are persisted in a local SQLite database and displayed on an interactive Leaflet map.
 
-![APRS Dashboard screenshot](docs/screenshot.png)
-
 ---
 
 ## Table of Contents
