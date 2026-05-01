@@ -194,8 +194,16 @@ All configuration is via environment variables. Copy `.env.example` to `.env` an
 
 ### Pull from GHCR
 
+X86:
+
 ```bash
 docker pull ghcr.io/rawpurplesmurf/aprs-web:latest
+```
+
+ARM:
+
+```bash
+docker pull ghcr.io/rawpurplesmurf/aprs-web:arm64
 ```
 
 ### Run the container
