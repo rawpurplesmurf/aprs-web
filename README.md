@@ -2,6 +2,7 @@
 
 A self-hosted, real-time APRS (Automatic Packet Reporting System) dashboard that interfaces with a local [Direwolf](https://github.com/wb2osz/direwolf) software TNC over a TCP KISS connection. Decoded station positions, weather data, and messages are persisted in a local SQLite database and displayed on an interactive Leaflet map.
 
+
 ---
 
 ## Table of Contents
@@ -191,10 +192,10 @@ All configuration is via environment variables. Copy `.env.example` to `.env` an
 
 ## Running with Docker
 
-### Build the image
+### Pull from GHCR
 
 ```bash
-docker build -t aprs-web:latest .
+docker pull ghcr.io/rawpurplesmurf/aprs-web:latest
 ```
 
 ### Run the container
@@ -211,13 +212,29 @@ docker run -d \
   --env WEB_PORT=3000 \
   --env BEACON_PATH="WIDE1-1,WIDE2-1" \
   --env BEACON_SYMBOL_TABLE=/ \
-  --env BEACON_SYMBOL_CODE='>' \
-  aprs-web:latest
+  --env 'BEACON_SYMBOL_CODE=>' \
+  ghcr.io/rawpurplesmurf/aprs-web:latest
 ```
 
-Or pass an env file:
+Or use your `.env` file:
 
 ```bash
+docker run -d \
+  --name aprs-web \
+  --restart unless-stopped \
+  -p 3000:3000 \
+  -v aprs-data:/app/data \
+  --env-file .env \
+  ghcr.io/rawpurplesmurf/aprs-web:latest
+```
+
+The `aprs-data` named volume persists the SQLite database across container restarts. Use `-v ./data:/app/data` instead if you want the database on the host filesystem.
+
+### Build locally (alternative)
+
+```bash
+docker build -t aprs-web:latest .
+
 docker run -d \
   --name aprs-web \
   --restart unless-stopped \
