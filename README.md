@@ -194,16 +194,8 @@ All configuration is via environment variables. Copy `.env.example` to `.env` an
 
 ### Pull from GHCR
 
-X86:
-
 ```bash
 docker pull ghcr.io/rawpurplesmurf/aprs-web:latest
-```
-
-ARM:
-
-```bash
-docker pull ghcr.io/rawpurplesmurf/aprs-web:arm64
 ```
 
 ### Run the container
@@ -214,7 +206,7 @@ docker run -d \
   --restart unless-stopped \
   -p 3000:3000 \
   -v aprs-data:/app/data \
-  --env MY_CALLSIGN=NOCALL \
+  --env MY_CALLSIGN=K7NGS-9 \
   --env DIREWOLF_HOST=direwolf.localdomain \
   --env DIREWOLF_KISS_PORT=8001 \
   --env WEB_PORT=3000 \

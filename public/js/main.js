@@ -41,6 +41,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialise map (map.js)
   initMap();
 
+  // Initialise time window slider (map.js)
+  _initTimeSlider();
+
   // Initialise UI event listeners (ui.js)
   initUI();
 
@@ -52,6 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const res      = await fetch('/api/stations');
     const stations = await res.json();
     stations.forEach(updateStationMarker);
+    applyTimeFilter(); // hide stations outside the default time window
     console.log(`[INIT] Loaded ${stations.length} stations from DB`);
   } catch (err) {
     console.error('[INIT] Failed to load stations:', err);

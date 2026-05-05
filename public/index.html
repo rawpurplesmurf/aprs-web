@@ -108,7 +108,16 @@
     </aside>
 
     <!-- ── Map ──────────────────────────────────────────────────────────── -->
-    <main id="map"></main>
+    <main id="map">
+      <!-- Time window slider overlay -->
+      <div id="time-slider-control" class="map-control">
+        <label for="time-slider" class="time-slider-label">
+          <span>🕐</span>
+          <span id="time-slider-value">60 min</span>
+        </label>
+        <input type="range" id="time-slider" min="1" max="300" value="60" step="1">
+      </div>
+    </main>
 
     <!-- ── Packet trace drawer (far right) ─────────────────────────────────── -->
     <aside id="trace-panel" class="panel hidden">

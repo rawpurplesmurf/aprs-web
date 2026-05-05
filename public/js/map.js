@@ -255,6 +255,71 @@ function hasActiveTrack(callsign) {
   return _tracks.has(callsign);
 }
 
+// ─── Time window filtering ───────────────────────────────────────────────────
+let _timeWindowMinutes = 60; // default 60 minutes
+
+/**
+ * Apply the time window filter — hide markers older than the threshold,
+ * show markers within it.
+ */
+function applyTimeFilter() {
+  const now = Math.floor(Date.now() / 1000);
+  const cutoff = now - (_timeWindowMinutes * 60);
+
+  for (const [callsign, entry] of _markers) {
+    const lastHeard = entry.data?.last_heard || 0;
+    if (lastHeard < cutoff) {
+      // Station is too old — remove from map (keep in _markers for reactivation)
+      if (_map.hasLayer(entry.marker)) {
+        _map.removeLayer(entry.marker);
+      }
+    } else {
+      // Station is within window — ensure it's on the map
+      if (!_map.hasLayer(entry.marker)) {
+        entry.marker.addTo(_map);
+      }
+    }
+  }
+}
+
+/**
+ * Set the time window and re-filter.
+ */
+function setTimeWindow(minutes) {
+  _timeWindowMinutes = minutes;
+  applyTimeFilter();
+}
+
+/**
+ * Initialise the time slider control.
+ */
+function _initTimeSlider() {
+  const slider  = document.getElementById('time-slider');
+  const label   = document.getElementById('time-slider-value');
+  const control = document.getElementById('time-slider-control');
+  if (!slider || !label || !control) return;
+
+  // Prevent Leaflet from dragging the map when interacting with the slider
+  L.DomEvent.disableClickPropagation(control);
+  L.DomEvent.disableScrollPropagation(control);
+
+  function formatDuration(min) {
+    if (min < 60) return `${min} min`;
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  }
+
+  slider.addEventListener('input', () => {
+    const val = parseInt(slider.value, 10);
+    label.textContent = formatDuration(val);
+    setTimeWindow(val);
+  });
+
+  // Run the filter every 10 seconds to age out stale markers
+  setInterval(applyTimeFilter, 10000);
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 /**
  * Centre the map on a given callsign (if it has a marker).
